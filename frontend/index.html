@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Segment Tree Visualizer</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <!-- Minimal Header -->
+    <header class="header">
+        <div class="brand">
+            <span class="brand-title">Segment Tree Visualizer</span>
+            <span class="brand-subtitle">Stock Price Monitor</span>
+        </div>
+
+        <div class="header-stats">
+            <div class="stat-item">
+                <span class="stat-lbl">N</span>
+                <span class="stat-val" id="stat-n">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-lbl">Min</span>
+                <span class="stat-val green" id="stat-min">$0.00</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-lbl">Max</span>
+                <span class="stat-val red" id="stat-max">$0.00</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-lbl">Spread</span>
+                <span class="stat-val" id="stat-spread">$0.00</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        
+        <!-- Top Row: Controls & Chart -->
+        <div class="top-row">
+            
+            <!-- Controls Card -->
+            <div class="panel controls-panel">
+                <!-- Clean Minimal Tabs -->
+                <div class="tabs">
+                    <button class="tab active" data-tab="tab-query">Query</button>
+                    <button class="tab" data-tab="tab-input">Input Data</button>
+                    <button class="tab" data-tab="tab-update">Update</button>
+                </div>
+
+                <div class="tab-content">
+                    <!-- 1. QUERY TAB -->
+                    <div id="tab-query" class="tab-pane active">
+                        <div class="mode-switch">
+                            <label class="radio-label">
+                                <input type="radio" name="query-mode" value="index" checked> Index [L, R]
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="query-mode" value="time"> Timestamp
+                            </label>
+                        </div>
+
+                        <!-- Index Form -->
+                        <div id="query-index-form" class="form-row">
+                            <div class="field">
+                                <label>Start (L)</label>
+                                <input type="number" id="query-left-input" class="input" min="0" value="0">
+                            </div>
+                            <div class="field">
+                                <label>End (R)</label>
+                                <input type="number" id="query-right-input" class="input" min="0" value="7">
+                            </div>
+                        </div>
+
+                        <!-- Timestamp Form -->
+                        <div id="query-time-form" class="form-row" style="display: none;">
+                            <div class="field">
+                                <label>Start Time</label>
+                                <select id="query-start-time" class="input"></select>
+                            </div>
+                            <div class="field">
+                                <label>End Time</label>
+                                <select id="query-end-time" class="input"></select>
+                            </div>
+                        </div>
+
+                        <div class="btn-group">
+                            <button id="btn-run-query" class="btn btn-primary">Query Range</button>
+                            <button id="btn-clear-query" class="btn btn-secondary">Clear</button>
+                        </div>
+
+                        <!-- Minimal Query Result -->
+                        <div id="query-result-box" class="result-box" style="display: none;">
+                            <div class="result-range" id="qr-range-label"></div>
+                            <div class="result-metrics">
+                                <div class="metric">
+                                    <span class="m-lbl">MIN</span>
+                                    <span class="m-val green" id="qr-min">$0.00</span>
+                                    <span class="m-sub" id="qr-min-time"></span>
+                                </div>
+                                <div class="metric">
+                                    <span class="m-lbl">MAX</span>
+                                    <span class="m-val red" id="qr-max">$0.00</span>
+                                    <span class="m-sub" id="qr-max-time"></span>
+                                </div>
+                                <div class="metric">
+                                    <span class="m-lbl">SPREAD</span>
+                                    <span class="m-val" id="qr-spread">$0.00</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 2. INPUT DATA TAB -->
+                    <div id="tab-input" class="tab-pane">
+                        <div class="field">
+                            <label>Data Source</label>
+                            <select id="input-source-select" class="input">
+                                <option value="synth">Generate Prices</option>
+                                <option value="raw">Paste CSV / Text</option>
+                                <option value="file">File Upload / Path</option>
+                            </select>
+                        </div>
+
+                        <!-- Generate Panel -->
+                        <div id="source-synth-panel">
+                            <div class="form-row-3">
+                                <div class="field">
+                                    <label>Count (N)</label>
+                                    <input type="number" id="gen-count" class="input" value="12" min="2" max="250">
+                                </div>
+                                <div class="field">
+                                    <label>Start Price</label>
+                                    <input type="number" id="gen-price" class="input" value="150.00" step="1">
+                                </div>
+                                <div class="field">
+                                    <label>Start Time</label>
+                                    <input type="text" id="gen-time" class="input" value="09:30:00">
+                                </div>
+                            </div>
+                            <button id="btn-generate-data" class="btn btn-primary btn-full">Generate</button>
+                        </div>
+
+                        <!-- Raw Text Panel -->
+                        <div id="source-raw-panel" style="display: none;">
+                            <div class="field">
+                                <label>Lines (timestamp, price or price)</label>
+                                <textarea id="raw-data-textarea" class="textarea" placeholder="09:30:00, 150.25&#10;09:30:01, 150.80"></textarea>
+                            </div>
+                            <button id="btn-load-raw" class="btn btn-primary btn-full">Load Raw Data</button>
+                        </div>
+
+                        <!-- File Panel -->
+                        <div id="source-file-panel" style="display: none;">
+                            <div class="field">
+                                <label>Upload CSV File</label>
+                                <input type="file" id="file-upload-input" accept=".csv,.txt" class="input" style="padding: 6px;">
+                            </div>
+                            <div class="field">
+                                <label>Or Server File Path</label>
+                                <input type="text" id="file-path-input" class="input" value="sample_data/sample_prices.csv">
+                            </div>
+                            <button id="btn-load-file" class="btn btn-primary btn-full">Load From Path</button>
+                        </div>
+                    </div>
+
+                    <!-- 3. UPDATE TAB -->
+                    <div id="tab-update" class="tab-pane">
+                        <div class="form-row">
+                            <div class="field">
+                                <label>Index</label>
+                                <input type="number" id="update-idx-input" class="input" min="0" value="0">
+                            </div>
+                            <div class="field">
+                                <label>New Price ($)</label>
+                                <input type="number" id="update-price-input" class="input" step="0.5" value="160.00">
+                            </div>
+                        </div>
+                        <button id="btn-submit-update" class="btn btn-primary btn-full">Update Price</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Price Chart Card -->
+            <div class="panel chart-panel">
+                <div class="panel-header">
+                    <span class="panel-title">Stock Price Feed</span>
+                </div>
+                <div class="chart-wrapper">
+                    <canvas id="stock-chart-canvas"></canvas>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Bottom Row: Segment Tree Visualizer -->
+        <div class="panel tree-panel">
+            <div class="panel-header">
+                <span class="panel-title">Segment Tree</span>
+                <div class="tree-actions">
+                    <button id="btn-tree-zoom-in" class="btn-icon" title="Zoom In">+</button>
+                    <button id="btn-tree-zoom-out" class="btn-icon" title="Zoom Out">−</button>
+                    <button id="btn-tree-reset" class="btn-icon" title="Reset View">100%</button>
+                    <button id="btn-tree-fit" class="btn-icon" title="Fit to View">Fit</button>
+                </div>
+            </div>
+            <div class="tree-container">
+                <div id="tree-canvas-container" style="width: 100%; height: 100%;"></div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Notification Toast -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <script src="chart-viz.js"></script>
+    <script src="tree-viz.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
